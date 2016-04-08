@@ -74,6 +74,8 @@ class SESMailer extends \Mailer {
 
 	protected function sendMessage($to, $from, $subject, Mime\Message $body, $headers = false) {
 		$message = new Mail\Message();
+
+		$message->setTo($to);
 		$message->setFrom($from);
 		$message->setSubject($subject);
 		$message->setBody($body);
