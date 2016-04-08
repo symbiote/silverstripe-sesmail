@@ -11,9 +11,12 @@ Injector:
   SESMailer:
     constructor:
       config:
-        key: EnterKey
-        secret: EnterSecret
+        credentials: 
+          key: YourKey
+          secret: YourSecret
         region: us-west-2
+        version: '2010-12-01'
+        signature_version: 'v4'
 ```
 
 Add the following to your project  \_config.php to enable it

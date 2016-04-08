@@ -74,20 +74,22 @@ class SESMailer extends \Mailer {
 
 	protected function sendMessage($to, $from, $subject, Mime\Message $body, $headers = false) {
 		$message = new Mail\Message();
-		$message->setTo($to);
 		$message->setFrom($from);
 		$message->setSubject($subject);
 		$message->setBody($body);
+        $message->setReplyTo($from);
 
 		if($headers) {
-			$message->getHeaders()->addHeaders($headers);
+            $message->getHeaders()->addHeaders($headers);
 		}
 
-		return $this->client->sendRawEmail(array(
+		$response = $this->client->sendRawEmail(array(
 			'Source' => $from,
 			'Destinations' => array($to),
 			'RawMessage' => array('Data' => $this->getMessageText($message))
 		));
+        /* @var $response Aws\Result */
+        return $response;
 	}
 
 	/**
@@ -136,7 +138,8 @@ class SESMailer extends \Mailer {
 	 * @return string
 	 */
 	private function getMessageText(Mail\Message $message) {
-		return base64_encode($message->getHeaders()->toString() . Mail\Headers::EOL . $message->getBodyText());
+        $raw = $message->getHeaders()->toString() . Mail\Headers::EOL . $message->getBodyText();
+        return $raw;
 	}
 
 }
