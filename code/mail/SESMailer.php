@@ -72,22 +72,32 @@ class SESMailer extends \Mailer {
 		$this->sendMessage($to, $from, $subject, $body, $headers);
 	}
 
-	protected function sendMessage($to, $from, $subject, Mime\Message $body, $headers = false) {
+	protected function sendMessage($destinations, $from, $subject, Mime\Message $body, $headers = false) {
 		$message = new Mail\Message();
-
-		$message->setTo($to);
 		$message->setFrom($from);
 		$message->setSubject($subject);
 		$message->setBody($body);
         $message->setReplyTo($from);
 
+		$destinations = isset($destinations) ? array(explode(',', $destinations)) : array();
+
+		//Set our headers. If we find CC or BCC emails add them to the Destinations array
+		if(!isset($headers['To'])) $headers['To'] = implode (',', $destinations);
+		if(isset($headers['Cc']))  $destinations = array_merge($destinations, explode(',', $headers['Cc']));
+		if(isset($headers['Bcc'])) $destinations = array_merge($destinations, explode(',', $headers['Bcc']));
+
 		if($headers) {
             $message->getHeaders()->addHeaders($headers);
 		}
 
+		//if no Destinations address is set SES will reject the email.
+		if(!array_filter($destinations)) {
+			throw new LogicException('No Destinations (To, Cc, Bcc) for email set.');
+		}
+
 		$response = $this->client->sendRawEmail(array(
 			'Source' => $from,
-			'Destinations' => array($to),
+			'Destinations' => $destinations,
 			'RawMessage' => array('Data' => $this->getMessageText($message))
 		));
         /* @var $response Aws\Result */
