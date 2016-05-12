@@ -79,10 +79,14 @@ class SESMailer extends \Mailer {
 		$message->setBody($body);
         $message->setReplyTo($from);
 
-		$destinations = isset($destinations) ? array(explode(',', $destinations)) : array();
+		if(isset($destinations)) {
+			$destinations = is_array($destinations) ? $destinations : explode(',', $destinations);
+		} else {
+			$destinations = array();
+		}
 
 		//Set our headers. If we find CC or BCC emails add them to the Destinations array
-		if(!isset($headers['To'])) $headers['To'] = implode (',', $destinations);
+		if(!isset($headers['To'])) $headers['To'] = implode ('; ', $destinations);
 		if(isset($headers['Cc']))  $destinations = array_merge($destinations, explode(',', $headers['Cc']));
 		if(isset($headers['Bcc'])) $destinations = array_merge($destinations, explode(',', $headers['Bcc']));
 
