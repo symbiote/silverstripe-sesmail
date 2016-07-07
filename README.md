@@ -8,7 +8,8 @@ to enable the mailer
 Name: AWSConfig
 ---
 Injector:
-  SESMailer:
+  Mailer:
+    class: SESMailer
     constructor:
       config:
         credentials: 
