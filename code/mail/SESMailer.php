@@ -18,6 +18,14 @@ class SESMailer extends \Mailer {
 	 * @var SesClient
 	 */
 	private $client;
+    
+    /**
+     * Define an 'always from' address that will override the 'From' 
+     * address for outbound emails, leaving the replyto as is. 
+     *
+     * @var string
+     */
+    public $alwaysFrom;
 	
 	public function __construct($config) {
 		$this->client = SesClient::factory($config);
@@ -74,7 +82,7 @@ class SESMailer extends \Mailer {
 
 	protected function sendMessage($destinations, $from, $subject, Mime\Message $body, $headers = false) {
 		$message = new Mail\Message();
-		$message->setFrom($from);
+		$message->setFrom($this->alwaysFrom ? $this->alwaysFrom : $from);
 		$message->setSubject($subject);
 		$message->setBody($body);
         $message->setReplyTo($from);
@@ -89,6 +97,11 @@ class SESMailer extends \Mailer {
 		if(!isset($headers['To'])) $headers['To'] = implode ('; ', $destinations);
 		if(isset($headers['Cc']))  $destinations = array_merge($destinations, explode(',', $headers['Cc']));
 		if(isset($headers['Bcc'])) $destinations = array_merge($destinations, explode(',', $headers['Bcc']));
+        
+        // if a custom 'reply-to' address has been set via headers
+        if(isset($headers['Reply-To'])) {
+            $message->setReplyTo($headers['Reply-To']);
+        }
 
 		if($headers) {
             $message->getHeaders()->addHeaders($headers);

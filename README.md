@@ -20,9 +20,15 @@ Injector:
         signature_version: 'v4'
 ```
 
-Add the following to your project  \_config.php to enable it
 
-```php
-$mailer = Injector::inst()->get('SESMailer');
-Email::set_mailer($mailer);
+If your SES account is configured with a single 'from' address having being 
+verified, you can set an 'always from' email address which will always be the 
+'From:' header, with the 'reply-to:' header set based on the calling code's
+'From' variable. Just add
+
+```
+Injector:
+  Mailer:
+    properties:
+      alwaysFrom: my@address.com
 ```
