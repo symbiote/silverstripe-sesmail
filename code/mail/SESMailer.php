@@ -45,7 +45,7 @@ class SESMailer extends \Mailer {
 			$this->addAttachments($body, $attachments);
 		}
 
-		$result = $this->sendMessage($to, $from, $subject, $body, $headers);
+		return $this->sendMessage($to, $from, $subject, $body, $headers);
 	}
 
 	public function sendHTML($to, $from, $subject, $html, $attachments = false, $headers = false, $plain = false, $inlineImages = false) {
@@ -77,7 +77,7 @@ class SESMailer extends \Mailer {
 			$this->addAttachments($body, $attachments);
 		}
 
-		$this->sendMessage($to, $from, $subject, $body, $headers);
+		return $this->sendMessage($to, $from, $subject, $body, $headers);
 	}
 
 	protected function sendMessage($destinations, $from, $subject, Mime\Message $body, $headers = false) {
@@ -112,12 +112,19 @@ class SESMailer extends \Mailer {
 			throw new LogicException('No Destinations (To, Cc, Bcc) for email set.');
 		}
 
-		$response = $this->client->sendRawEmail(array(
-			'Destinations' => $destinations,
-			'RawMessage' => array('Data' => $this->getMessageText($message))
-		));
+        try {
+            $response = $this->client->sendRawEmail(array(
+                'Destinations' => $destinations,
+                'RawMessage' => array('Data' => $this->getMessageText($message))
+            ));
+        } catch (\Aws\Ses\Exception\SesException $ex) {
+            return false;
+        }
+		
         /* @var $response Aws\Result */
-        return $response;
+        if (isset($response['MessageId']) && strlen($response['MessageId'])) {
+            return true;
+        }
 	}
 
 	/**
