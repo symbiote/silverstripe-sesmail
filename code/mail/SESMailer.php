@@ -113,7 +113,6 @@ class SESMailer extends \Mailer {
 		}
 
 		$response = $this->client->sendRawEmail(array(
-			'Source' => $from,
 			'Destinations' => $destinations,
 			'RawMessage' => array('Data' => $this->getMessageText($message))
 		));
