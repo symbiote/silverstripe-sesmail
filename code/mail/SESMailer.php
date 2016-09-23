@@ -162,6 +162,7 @@ class SESMailer extends \Mailer {
 		$attachment->type = $file['mimetype'];
 		$attachment->filename = $as ?: basename($file['filename']);
 		$attachment->disposition = Mime\Mime::DISPOSITION_ATTACHMENT;
+		$attachment->encoding = Mime\Mime::ENCODING_BASE64;
 
 		$message->addPart($attachment);
 	}
