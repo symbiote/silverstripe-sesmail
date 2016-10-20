@@ -101,6 +101,7 @@ class SESMailer extends \Mailer {
         // if a custom 'reply-to' address has been set via headers
         if(isset($headers['Reply-To'])) {
             $message->setReplyTo($headers['Reply-To']);
+			unset($headers['Reply-To']);
         }
 
 		if($headers) {
