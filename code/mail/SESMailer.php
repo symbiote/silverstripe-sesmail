@@ -116,11 +116,11 @@ class SESMailer extends \Mailer {
 		$rawMessageText = $this->getMessageText($message);
 		
 		if(strlen($rawMessageText) > 256 && class_exists('QueuedJobService')) {
-			singleton('QueuedJobService')->queueJob(new SESQueuedMail(
+			singleton('QueuedJobService')->queueJob(Injector::inst()->get('SESQueuedMail', false, array(
 				$destinations,
 				$subject,
 				$rawMessageText
-			));
+			)));
 			unset($rawMessageText);
 			return true;
 		}

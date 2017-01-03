@@ -18,6 +18,11 @@ class SESQueuedMail extends AbstractQueuedJob implements QueuedJob {
 		return 'Email To: ' . implode(', ', $this->To) . ' Subject: ' . $this->Subject;
 	}
 
+	public function getSignature() {
+
+		return md5($this->Subject) . ' ' . implode(', ', $this->To);
+	}
+
 	public function getJobType() {
 
 		$this->totalSteps = '1';
@@ -26,7 +31,8 @@ class SESQueuedMail extends AbstractQueuedJob implements QueuedJob {
 	}
 
 	/**
-	 * Lets process a single node, and publish it if necessary
+	 * Send this email. We try this only once and break as soon as something goes wrong to avoid sending multiple emails
+	 * or DoSing our job queued with slow processing emails.
 	 */
 	public function process() {
 
@@ -35,8 +41,6 @@ class SESQueuedMail extends AbstractQueuedJob implements QueuedJob {
 			return;
 		}
 
-		// we need to always increment! This is important, because if we don't then our container
-		// that executes around us thinks that the job has died, and will stop it running.
 		$this->currentStep++;
 
 		try {
@@ -54,6 +58,9 @@ class SESQueuedMail extends AbstractQueuedJob implements QueuedJob {
 
 			return;
 		}
+
+		$this->addMessage(json_encode($response->toArray()), 'ERR');
+		$this->JobStatus = QueuedJob::STATUS_BROKEN;
 	}
 
 }
