@@ -85,7 +85,7 @@ class SESMailer extends \Mailer {
 		$message->setFrom($this->alwaysFrom ? $this->alwaysFrom : $from);
 		$message->setSubject($subject);
 		$message->setBody($body);
-        $message->setReplyTo($from);
+		$message->setReplyTo(trim($from));
 
 		if(isset($destinations)) {
 			$destinations = is_array($destinations) ? $destinations : explode(',', $destinations);
