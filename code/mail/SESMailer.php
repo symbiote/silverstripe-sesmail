@@ -113,20 +113,53 @@ class SESMailer extends \Mailer {
 			throw new LogicException('No Destinations (To, Cc, Bcc) for email set.');
 		}
 
-        try {
-            $response = $this->client->sendRawEmail(array(
-                'Destinations' => $destinations,
-                'RawMessage' => array('Data' => $this->getMessageText($message))
-            ));
-        } catch (\Aws\Ses\Exception\SesException $ex) {
-            return false;
-        }
+		$rawMessageText = $this->getMessageText($message);
 		
+		if(strlen($rawMessageText) > 256 && class_exists('QueuedJobService')) {
+			singleton('QueuedJobService')->queueJob(Injector::inst()->createWithArgs('SESQueuedMail', array(
+				$destinations,
+				$subject,
+				$rawMessageText
+			)));
+			unset($rawMessageText);
+			return true;
+		}
+
+		try {
+			$response = $this->sendSESClient($destinations, $rawMessageText);
+		} catch (\Aws\Ses\Exception\SesException $ex) {
+			SS_Log::log($ex, SS_Log::ERR);
+			unset($rawMessageText);
+			return false;
+		}
+
+		unset($rawMessageText);
+
         /* @var $response Aws\Result */
         if (isset($response['MessageId']) && strlen($response['MessageId'])) {
             return true;
         }
+
+		return false;
 	}
+
+	/**
+	 * Send an email via SES. Expects an array of valid emails and a raw email body that is valid.
+	 *
+	 * @param array $destinations array of emails addresses this email will be sent to
+	 * @param string $rawMessageText Raw email message text must contain headers; and otherwise be a valid email body
+	 * @return Array Amazon SDK response
+	 */
+	public function sendSESClient ($destinations, $rawMessageText) {
+
+		$response = $this->client->sendRawEmail(array(
+			'Destinations' => $destinations,
+			'RawMessage' => array('Data' => $rawMessageText)
+		));
+
+		return $response;
+	}
+
 
 	/**
 	 * @param Mime\Message $message
