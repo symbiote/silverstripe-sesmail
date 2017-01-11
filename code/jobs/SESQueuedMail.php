@@ -41,16 +41,9 @@ class SESQueuedMail extends AbstractQueuedJob implements QueuedJob {
 			return;
 		}
 
-		$this->currentStep++;
+		$this->currentStep = 1;
 
-		try {
-			$response = Injector::inst()->get('SESMailer')->sendSESClient($this->To, $this->RawMessageText);
-		} catch (\Aws\Ses\Exception\SesException $ex) {
-			$this->addMessage($ex, 'ERR');
-			$this->JobStatus = QueuedJob::STATUS_BROKEN;
-
-			return;
-		}
+		$response = Injector::inst()->get('SESMailer')->sendSESClient($this->To, $this->RawMessageText);
 
 		if (isset($response['MessageId']) && strlen($response['MessageId'])) {
 			$this->RawMessageText = 'Email Sent Successfully. Message body deleted';
@@ -58,9 +51,7 @@ class SESQueuedMail extends AbstractQueuedJob implements QueuedJob {
 
 			return;
 		}
-
-		$this->addMessage(json_encode($response->toArray()), 'ERR');
-		$this->JobStatus = QueuedJob::STATUS_BROKEN;
+		throw new Exception(json_encode($response->toArray()), 'ERR');
 	}
 
 }
