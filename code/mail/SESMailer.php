@@ -152,10 +152,33 @@ class SESMailer extends \Mailer {
 	 */
 	public function sendSESClient ($destinations, $rawMessageText) {
 
-		$response = $this->client->sendRawEmail(array(
-			'Destinations' => $destinations,
-			'RawMessage' => array('Data' => $rawMessageText)
-		));
+		try {
+			$response = $this->client->sendRawEmail(array(
+				'Destinations' => $destinations,
+				'RawMessage' => array('Data' => $rawMessageText)
+			));
+		} catch (Exception $ex) {
+			/*
+			 * Amazon SES has intermittent issues with SSL connections being dropped before response is full received
+			 * and decoded we're catching it here and trying to send again, the exception doesn't have an error code or
+			 * similar to check on so we have to relie on magic strings in the error message. The error we're catching
+			 * here is normally:
+			 * 
+			 * AWS HTTP error: cURL error 56: SSL read: error:00000000:lib(0):func(0):reason(0), errno 104
+			 * (see http://curl.haxx.se/libcurl/c/libcurl-errors.html) (server): 100 Continue
+			 * 
+			 * Without the line break, so we check for the 'cURL error 56' as it seems likely to be consistent across
+			 * systems/sites
+			 */
+			if(strpos($ex->getMessage(), "cURL error 56")) {
+				$response = $this->client->sendRawEmail(array(
+					'Destinations' => $destinations,
+					'RawMessage' => array('Data' => $rawMessageText)
+				));
+			} else {
+				throw $ex;
+			}
+		}
 
 		return $response;
 	}
