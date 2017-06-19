@@ -1,5 +1,5 @@
 {
-	"name": "silverstripe-australia/silverstripe-sesmail",
+	"name": "symbiote/silverstripe-sesmail",
 	"description": "Custom Mailer type that sends mail via Amazon's SES",
 	"type": "silverstripe-module",
 	"keywords": ["silverstripe", "email", "amazon", "ses"],
@@ -18,7 +18,7 @@
 	"extra": {
 		"installer-name": "sesmail",
 		"branch-alias": {
-			"dev-master": "2.1.x-dev"
+			"dev-master": "3.0.x-dev"
 		}
 	}
 }
