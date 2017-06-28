@@ -45,10 +45,11 @@ class SESQueuedMail extends AbstractQueuedJob implements QueuedJob {
 
 		$response = Injector::inst()->get('SESMailer')->sendSESClient($this->To, $this->RawMessageText);
 
-		if (isset($response['MessageId']) && strlen($response['MessageId'])) {
+		if (isset($response['MessageId']) && strlen($response['MessageId']) && 
+			(isset($response['@metadata']['statusCode']) && $response['@metadata']['statusCode'] == 200)) {
+			$this->addMessage('SES Response: '.print_r($response, true));
 			$this->RawMessageText = 'Email Sent Successfully. Message body deleted';
 			$this->isComplete = true;
-
 			return;
 		}
 		throw new Exception(json_encode($response->toArray()), 'ERR');
