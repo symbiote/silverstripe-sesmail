@@ -7,7 +7,11 @@
  */
 class SESQueuedMail extends AbstractQueuedJob implements QueuedJob {
 
-	public function __construct($destinations, $subject, $rawMessageText) {
+	public function __construct($destinations = array(), $subject = '', $rawMessageText = '') {
+		if (!$destinations && !$subject && !$rawMessageText) {
+			// Avoid QueuedJobService::initialiseJob errors
+			return;
+		}
 		$this->To = $destinations;
 		$this->Subject = $subject;
 		$this->RawMessageText = $rawMessageText;
@@ -37,22 +41,40 @@ class SESQueuedMail extends AbstractQueuedJob implements QueuedJob {
 	public function process() {
 
 		if ($this->isComplete) {
-
 			return;
 		}
+		$this->currentStep += 1;
 
-		$this->currentStep = 1;
+		// Detect issues with data
+		$isCorrupt = false;
+		$to = $this->To;
+		$rawMessageText = $this->RawMessageText;
+		if (!$to) {
+			$this->addMessage('$this->To should not be empty.');
+			$isCorrupt = true;
+		}
+		if (!$rawMessageText) {
+			$this->addMessage('$this->RawMessageText should not be empty.');
+			$isCorrupt = true;
+		}
+		if ($isCorrupt) {
+			throw new Exception('Corrupted SESQueuedMail job (Missing "To" or "RawMessageText").', 'ERR');
+		}
 
-		$response = Injector::inst()->get('SESMailer')->sendSESClient($this->To, $this->RawMessageText);
+		$response = Injector::inst()->get('SESMailer')->sendSESClient($to, $rawMessageText);
+		$this->addMessage('SES Response: '.print_r($response, true));
 
 		if (isset($response['MessageId']) && strlen($response['MessageId']) && 
 			(isset($response['@metadata']['statusCode']) && $response['@metadata']['statusCode'] == 200)) {
-			$this->addMessage('SES Response: '.print_r($response, true));
 			$this->RawMessageText = 'Email Sent Successfully. Message body deleted';
 			$this->isComplete = true;
 			return;
 		}
-		throw new Exception(json_encode($response->toArray()), 'ERR');
+		$this->addMessage('$this->To should not be empty.');
+		if ($response) {
+			throw new Exception(json_encode($response->toArray()), 'ERR');
+		}
+		throw new Exception('Blank "response" result from SESMailer::sendSESClient()', 'ERR');
 	}
 
 }
