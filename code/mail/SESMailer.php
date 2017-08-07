@@ -87,7 +87,7 @@ class SESMailer extends \Mailer {
 		$message->setBody($body);
 		$message->setReplyTo(trim($from));
 
-		if(isset($destinations)) {
+		if(isset($destinations) && $destinations) {
 			$destinations = is_array($destinations) ? $destinations : explode(',', $destinations);
 		} else {
 			$destinations = array();
@@ -115,7 +115,7 @@ class SESMailer extends \Mailer {
 
 		$rawMessageText = $this->getMessageText($message);
 		
-		if(strlen($rawMessageText) > 256 && class_exists('QueuedJobService')) {
+		if (class_exists('QueuedJobService')) {
 			singleton('QueuedJobService')->queueJob(Injector::inst()->createWithArgs('SESQueuedMail', array(
 				$destinations,
 				$subject,
@@ -136,7 +136,8 @@ class SESMailer extends \Mailer {
 		unset($rawMessageText);
 
         /* @var $response Aws\Result */
-        if (isset($response['MessageId']) && strlen($response['MessageId'])) {
+        if (isset($response['MessageId']) && strlen($response['MessageId']) && 
+			(isset($response['@metadata']['statusCode']) && $response['@metadata']['statusCode'] == 200)) {
             return true;
         }
 
