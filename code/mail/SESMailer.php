@@ -18,6 +18,13 @@ class SESMailer extends \Mailer {
 	 * @var SesClient
 	 */
 	private $client;
+
+	/**
+     * Allows QueuedJobs module to be bypassed when sending emails
+     *
+     * @var boolean
+     */
+    public $ignoreQueuedJobs = false;
     
     /**
      * Define an 'always from' address that will override the 'From' 
@@ -115,7 +122,7 @@ class SESMailer extends \Mailer {
 
 		$rawMessageText = $this->getMessageText($message);
 		
-		if (class_exists('QueuedJobService')) {
+		if (class_exists('QueuedJobService') && !$this->ignoreQueuedJobs) {
 			singleton('QueuedJobService')->queueJob(Injector::inst()->createWithArgs('SESQueuedMail', array(
 				$destinations,
 				$subject,
