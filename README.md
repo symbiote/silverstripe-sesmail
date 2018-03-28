@@ -32,3 +32,12 @@ Injector:
     properties:
       alwaysFrom: my@address.com
 ```
+
+Emails will be sent through the QueuedJobs module if it is installed. You can set the following configuration to bypass this behaviour even if QueuedJobs is installed
+
+```
+Injector:
+  Mailer:
+    properties:
+      ignoreQueuedJobs: true
+```
