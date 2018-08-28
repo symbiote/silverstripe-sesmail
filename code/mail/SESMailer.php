@@ -20,11 +20,11 @@ class SESMailer extends \Mailer {
 	private $client;
 
 	/**
-     * Allows QueuedJobs module to be bypassed when sending emails
+     * Uses QueuedJobs module when sending emails
      *
      * @var boolean
      */
-    public $ignoreQueuedJobs = false;
+    public $useQueuedJobs = true;
     
     /**
      * Define an 'always from' address that will override the 'From' 
@@ -122,7 +122,7 @@ class SESMailer extends \Mailer {
 
 		$rawMessageText = $this->getMessageText($message);
 		
-		if (class_exists('QueuedJobService') && !$this->ignoreQueuedJobs) {
+		if (class_exists('QueuedJobService') && $this->useQueuedJobs) {
 			singleton('QueuedJobService')->queueJob(Injector::inst()->createWithArgs('SESQueuedMail', array(
 				$destinations,
 				$subject,

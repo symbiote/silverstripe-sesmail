@@ -39,5 +39,5 @@ Emails will be sent through the QueuedJobs module if it is installed. You can se
 Injector:
   Mailer:
     properties:
-      ignoreQueuedJobs: true
+      useQueuedJobs: false
 ```
