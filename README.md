@@ -20,6 +20,13 @@ Injector:
         signature_version: 'v4'
 ```
 
+An alternative way of providing credentials is to add those to the _ss_environment.php file, as shown below;
+If you use this method, then you don't need to supply the credentials in the YML configuation.
+
+```
+define('SS_AWS_KEY', '<key>');
+define('SS_AWS_SECRET', '<secret>');
+```
 
 If your SES account is configured with a single 'from' address having being 
 verified, you can set an 'always from' email address which will always be the 

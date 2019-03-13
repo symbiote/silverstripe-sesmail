@@ -35,6 +35,18 @@ class SESMailer extends \Mailer {
     public $alwaysFrom;
 	
 	public function __construct($config) {
+        if (!empty($config) && !isset($config['credentials'])) {
+            // try to load the credentials from the Silverstripe configuration file
+            if (!defined('SS_AWS_KEY') || !defined('SS_AWS_SECRET')) {
+                throw new Exception("Undefined SS_AWS_KEY or SS_AWS_SECRET, unable to construct the AWS mailer");
+            }
+
+            $config['credentials'] = array(
+                'key' => defined('SS_AWS_KEY') ? SS_AWS_KEY : '',
+                'secret' => defined('SS_AWS_SECRET') ? SS_AWS_SECRET : '',
+            );
+        }
+
 		$this->client = SesClient::factory($config);
 		parent::__construct();
 	}
