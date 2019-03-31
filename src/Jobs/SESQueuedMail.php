@@ -1,5 +1,12 @@
 <?php
 
+namespace Symbiote\SilverStripeSESMailer;
+
+use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
+use Symbiote\QueuedJobs\Services\QueuedJob;
+use Exception;
+use SilverStripe\Core\Injector\Injector;
+
 /**
  * SESQueuedMail
  *

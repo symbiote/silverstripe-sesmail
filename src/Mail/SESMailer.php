@@ -1,8 +1,17 @@
 <?php
 
+namespace Symbiote\SilverStripeSESMailer;
+
 use Aws\Ses\SesClient;
 use Zend\Mail;
 use Zend\Mime;
+use SilverStripe\Control\Email\Mailer;
+use SilverStripe\Core\Convert;
+use LogicException;
+use SilverStripe\Core\Injector\Injector;
+use Exception;
+use SilverStripe\Control\HTTP;
+
 
 /**
  * A mailer implementation which uses Amazon's Simple Email Service.
@@ -12,7 +21,7 @@ use Zend\Mime;
  *
  * Does not support inline images.
  */
-class SESMailer extends \Mailer {
+class SESMailer extends Mailer {
 
 	/**
 	 * @var SesClient
@@ -122,8 +131,8 @@ class SESMailer extends \Mailer {
 
 		$rawMessageText = $this->getMessageText($message);
 		
-		if (class_exists('QueuedJobService') && $this->useQueuedJobs) {
-			singleton('QueuedJobService')->queueJob(Injector::inst()->createWithArgs('SESQueuedMail', array(
+		if (class_exists(QueuedJobService::class) && $this->useQueuedJobs) {
+			singleton(QueuedJobService::class)->queueJob(Injector::inst()->createWithArgs('SESQueuedMail', array(
 				$destinations,
 				$subject,
 				$rawMessageText
