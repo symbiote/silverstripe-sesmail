@@ -1,6 +1,6 @@
 <?php
 
-namespace Symbiote\SilverStripeSESMailer;
+namespace Symbiote\SilverStripeSESMailer\Jobs;
 
 use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJob;
@@ -68,7 +68,9 @@ class SESQueuedMail extends AbstractQueuedJob implements QueuedJob {
 			throw new Exception('Corrupted SESQueuedMail job (Missing "To" or "RawMessageText").', 'ERR');
 		}
 
-		$response = Injector::inst()->get('SESMailer')->sendSESClient($to, $rawMessageText);
+		$response = Injector::inst()->get(SESMailer::class)
+			->sendSESClient($to, $rawMessageText);
+			
 		$this->addMessage('SES Response: '.print_r($response, true));
 
 		if (isset($response['MessageId']) && strlen($response['MessageId']) && 

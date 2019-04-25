@@ -7,9 +7,9 @@ to enable the mailer
 ---
 Name: AWSConfig
 ---
-Injector:
-  Mailer:
-    class: SESMailer
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\Control\Email\Mailer:
+    class: Symbiote\SilverStripeSESMailer\SESMailer
     constructor:
       config:
         credentials: 
