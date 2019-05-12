@@ -9,7 +9,7 @@ Name: AWSConfig
 ---
 SilverStripe\Core\Injector\Injector:
   SilverStripe\Control\Email\Mailer:
-    class: Symbiote\SilverStripeSESMailer\SESMailer
+    class: Symbiote\SilverStripeSESMailer\Mail\SESMailer
     constructor:
       config:
         credentials: 
