@@ -20,27 +20,52 @@ use SilverStripe\Control\HTTP;
  *
  * Does not support inline images.
  */
-class SESMailer implements Mailer 
+class SESMailer implements Mailer
 {
 
 	/**
 	 * @var SesClient
 	 */
-	private $client;
+	protected $client;
 
 	/**
      * Uses QueuedJobs module when sending emails
      *
      * @var boolean
      */
-	public $useQueuedJobs = true;
+	protected $useQueuedJobs = true;
+
+	/**
+	 * @var array|null
+	 */
+	protected $lastResponse = null;
 
 	/**
 	 * @param array $config
 	 */
-	public function __construct($config) 
+	public function __construct($config)
 	{
 		$this->client = SesClient::factory($config);
+	}
+
+	/**
+	 * @param boolean $bool
+	 *
+	 * @return $this
+	 */
+	public function setUseQueuedJobs($bool)
+	{
+		$this->useQueuedJobs = $bool;
+
+		return $this;
+	}
+
+	/**
+	 * @return array|null
+	 */
+	public function getLastResponse()
+	{
+		return $this->lastResponse;
 	}
 
 	/**
@@ -48,12 +73,17 @@ class SESMailer implements Mailer
 	 */
 	public function send($email)
 	{
-		$destinations = array_merge(
-			$email->getTo(),
-			$email->getCc(),
-			$email->getBcc()
-		);
+		$destinations = $email->getTo();
 
+		if ($cc = $email->getCc()) {
+			$destinations = array_merge($destinations, $cc);
+		}
+
+		if ($bcc = $email->getBcc()) {
+			$destinations = array_merge($destinations, $bcc);
+		}
+
+		$destinations = array_keys($destinations);
 		$subject = $email->getSubject();
 		$rawMessageText = $email->render()->getSwiftMessage()->toString();
 
@@ -71,14 +101,17 @@ class SESMailer implements Mailer
 
 		try {
 			$response = $this->sendSESClient($destinations, $rawMessageText);
+
+			$this->lastResponse = $response;
 		} catch (\Aws\Ses\Exception\SesException $ex) {
 			Injector::inst()->get(LoggerInterface::class)->warning($ex->getMessage());
 
+			$this->lastResponse = false;
 			return false;
 		}
 
         /* @var $response Aws\Result */
-        if (isset($response['MessageId']) && strlen($response['MessageId']) && 
+        if (isset($response['MessageId']) && strlen($response['MessageId']) &&
 			(isset($response['@metadata']['statusCode']) && $response['@metadata']['statusCode'] == 200)) {
             return true;
         }
@@ -106,10 +139,10 @@ class SESMailer implements Mailer
 			 * and decoded we're catching it here and trying to send again, the exception doesn't have an error code or
 			 * similar to check on so we have to relie on magic strings in the error message. The error we're catching
 			 * here is normally:
-			 * 
+			 *
 			 * AWS HTTP error: cURL error 56: SSL read: error:00000000:lib(0):func(0):reason(0), errno 104
 			 * (see http://curl.haxx.se/libcurl/c/libcurl-errors.html) (server): 100 Continue
-			 * 
+			 *
 			 * Without the line break, so we check for the 'cURL error 56' as it seems likely to be consistent across
 			 * systems/sites
 			 */
