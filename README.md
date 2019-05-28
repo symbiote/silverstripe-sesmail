@@ -12,7 +12,7 @@ SilverStripe\Core\Injector\Injector:
     class: Symbiote\SilverStripeSESMailer\Mail\SESMailer
     constructor:
       config:
-        credentials: 
+        credentials:
           key: YourKey
           secret: YourSecret
         region: us-west-2
@@ -21,23 +21,25 @@ SilverStripe\Core\Injector\Injector:
 ```
 
 
-If your SES account is configured with a single 'from' address having being 
-verified, you can set an 'always from' email address which will always be the 
+If your SES account is configured with a single 'from' address having being
+verified, you can set an 'always from' email address which will always be the
 'From:' header, with the 'reply-to:' header set based on the calling code's
 'From' variable. Just add
 
 ```
-Injector:
-  Mailer:
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\Control\Email\Mailer:
     properties:
       alwaysFrom: my@address.com
 ```
 
-Emails will be sent through the QueuedJobs module if it is installed. You can set the following configuration to bypass this behaviour even if QueuedJobs is installed
+Emails will be sent through the QueuedJobs module if it is installed. You can
+set the following configuration to bypass this behaviour even if QueuedJobs is
+installed:
 
 ```
-Injector:
-  Mailer:
-    properties:
-      useQueuedJobs: false
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\Control\Email\Mailer:
+    calls:
+      - [ setUseQueuedJobs, [ false ] ]
 ```
