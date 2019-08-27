@@ -4,12 +4,10 @@ namespace Symbiote\SilverStripeSESMailer\Mail;
 
 use Aws\Ses\SesClient;
 use SilverStripe\Control\Email\Mailer;
-use SilverStripe\Core\Convert;
-use LogicException;
+use SilverStripe\Control\Email\Email;
 use SilverStripe\Core\Injector\Injector;
 use Exception;
 use Psr\Log\LoggerInterface;
-use SilverStripe\Control\HTTP;
 
 
 /**
@@ -75,12 +73,24 @@ class SESMailer implements Mailer
 	{
 		$destinations = $email->getTo();
 
-		if ($cc = $email->getCc()) {
-			$destinations = array_merge($destinations, $cc);
-		}
+		if ($overideTo = Email::getSendAllEmailsTo()) {
+			$destinations = $overideTo;
+		} else {
+			if ($cc = $email->getCc()) {
+				$destinations = array_merge($destinations, $cc);
+			}
 
-		if ($bcc = $email->getBcc()) {
-			$destinations = array_merge($destinations, $bcc);
+			if ($bcc = $email->getBcc()) {
+				$destinations = array_merge($destinations, $bcc);
+			}
+
+			if ($addCc = Email::getCCAllEmailsTo()) {
+				$destinations = array_merge($destinations, $addCc);
+			}
+
+			if ($addBCc = Email::getBCCAllEmailsTo()) {
+				$destinations = array_merge($destinations, $addBCc);
+			}
 		}
 
 		$destinations = array_keys($destinations);
