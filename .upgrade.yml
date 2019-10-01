@@ -1,0 +1,3 @@
+mappings:
+  SESMailer: Symbiote\SilverStripeSESMailer\Mail\SESMailer
+  SESQueuedMail: Symbiote\SilverStripeSESMailer\Jobs\SESQueuedMail
